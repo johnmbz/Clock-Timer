@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.3.1] - 2026-10-04
+
+### Bug Fixes
+- **Timer Reset on Completion**: Fixed an issue where the previous timer duration remained in memory after the countdown completed. Adding a new duration (e.g. `+1m`) after a timer finished now properly sets the exact requested time (`01:00`) instead of accumulating on top of the previous historical duration (`02:00`).
+- **Timer Extension while Paused**: Preserved elapsed time and cleanly added duration when clicking preset buttons while the timer is running or paused.
+- **UI Hint Transitions**: Updated idle and finished status hint labels to seamlessly reflect active alarms and state transitions.
+
+---
+
 ## [1.3.0] - 2026-09-29
 
 ### Added and Enhanced

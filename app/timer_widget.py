@@ -370,7 +370,8 @@ class TimerWidget(QWidget):
             self.btn_toggle.setText("▶")
             self.btn_toggle.setToolTip(i18n.t("btn_start"))
             self.btn_mini_toggle.setText("▶")
-            self.status_label.setText(i18n.t("timer_hint_idle") if self.initial_seconds == 0 else i18n.t("timer_hint_finished"))
+            is_alarming = getattr(self, "alarm_timer", None) is not None and self.alarm_timer.isActive()
+            self.status_label.setText(i18n.t("timer_hint_finished") if is_alarming else i18n.t("timer_hint_idle"))
         else:
             self.btn_toggle.setText("▶")
             self.btn_toggle.setToolTip(i18n.t("btn_start"))
@@ -391,12 +392,18 @@ class TimerWidget(QWidget):
         self.alarm_count = 0
 
     def add_time(self, seconds):
-        if self.is_running:
+        if self.remaining_seconds == 0:
+            self.initial_seconds = seconds
+            self.remaining_seconds = seconds
+        elif self.is_running or (0 < self.remaining_seconds < self.initial_seconds):
             self.remaining_seconds += seconds
+            self.initial_seconds += seconds
         else:
             self.initial_seconds += seconds
             self.remaining_seconds = self.initial_seconds
         self.stop_alarm()
+        if not self.is_running:
+            self.status_label.setText(i18n.t("timer_hint_idle"))
         self.update_display()
 
     def clear_time(self):
@@ -424,6 +431,7 @@ class TimerWidget(QWidget):
             self.initial_seconds = total
             self.remaining_seconds = total
             self.stop_alarm()
+            self.status_label.setText(i18n.t("timer_hint_idle"))
             self.update_display()
 
     def toggle_timer(self):
@@ -485,11 +493,15 @@ class TimerWidget(QWidget):
         else:
             self.timer.stop()
             self.is_running = False
+            self.initial_seconds = 0
+            self.remaining_seconds = 0
             self.btn_toggle.setText("▶")
             self.btn_toggle.setToolTip(i18n.t("btn_start"))
             self.btn_mini_toggle.setText("▶")
             self.btn_toggle.setStyleSheet("")
             self.btn_mini_toggle.setStyleSheet("")
+            self.time_label.setStyleSheet("color: #ffffff;")
+            self.mini_time_label.setStyleSheet("color: #ffffff;")
             self.status_label.setText(i18n.t("timer_hint_finished"))
             self.trigger_alarm()
 
