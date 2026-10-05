@@ -3,14 +3,14 @@ import shutil
 import subprocess
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QPushButton, 
-    QStackedWidget, QSizeGrip, QLabel, QSlider,
+    QStackedWidget, QSizeGrip, QLabel, QSlider, QComboBox,
     QSystemTrayIcon, QMenu, QApplication, QGraphicsOpacityEffect
 )
 from PyQt6.QtCore import (
     Qt, QEvent, QTimer, QSize, QPropertyAnimation, 
-    QEasingCurve, QRect, QParallelAnimationGroup, pyqtProperty
+    QEasingCurve, QRect, QParallelAnimationGroup, pyqtProperty, QUrl
 )
-from PyQt6.QtGui import QCursor
+from PyQt6.QtGui import QCursor, QDesktopServices
 
 
 from .clock_widget import ClockWidget
@@ -18,8 +18,12 @@ from .timer_widget import TimerWidget
 from .draggable_widgets import DraggableTabButton
 from .styles import MAIN_STYLE
 from .i18n import i18n
+from .config import config
 
 BORDER_MARGIN = 8
+
+# Sonidos disponibles en el selector del panel (el valor 'custom' solo aparece si hay ruta en config.ini)
+SOUND_CHOICES = ("chime", "bell", "digital", "soft", "system", "none")
 
 
 class FloatingClockTimerWindow(QWidget):
@@ -210,6 +214,33 @@ class FloatingClockTimerWindow(QWidget):
         lang_row.addWidget(self.btn_lang_en)
         panel_layout.addLayout(lang_row)
 
+        # Fila 3: Sonido de alarma (selector + probar) y acceso a config.ini
+        sound_row = QHBoxLayout()
+        sound_row.setSpacing(4)
+        self.lbl_sound_setting = QLabel(self.settings_panel)
+        self.lbl_sound_setting.setObjectName("SettingsLabel")
+
+        self.sound_combo = QComboBox(self.settings_panel)
+        self.sound_combo.setObjectName("SoundCombo")
+        self.sound_combo.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.sound_combo.activated.connect(self.on_sound_selected)
+
+        self.btn_sound_preview = QPushButton("▶", self.settings_panel)
+        self.btn_sound_preview.setProperty("class", "OpacityPreset")
+        self.btn_sound_preview.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.btn_sound_preview.clicked.connect(self.preview_sound)
+
+        self.btn_open_config = QPushButton("…", self.settings_panel)
+        self.btn_open_config.setProperty("class", "OpacityPreset")
+        self.btn_open_config.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.btn_open_config.clicked.connect(self.open_config_file)
+
+        sound_row.addWidget(self.lbl_sound_setting)
+        sound_row.addWidget(self.sound_combo, 1)
+        sound_row.addWidget(self.btn_sound_preview)
+        sound_row.addWidget(self.btn_open_config)
+        panel_layout.addLayout(sound_row)
+
         container_layout.addWidget(self.settings_panel)
 
         # 4. Pila de contenido (Reloj o Temporizador)
@@ -255,6 +286,55 @@ class FloatingClockTimerWindow(QWidget):
         # Aplicar textos y traducciones iniciales
         self.retranslate_ui()
         i18n.subscribe(self.retranslate_ui)
+
+        # Restaurar preferencias persistidas y escuchar cambios hechos a mano en config.ini
+        self.opacity_slider.setValue(config.get("general.opacity"))
+        config.changed.connect(self._on_config_changed)
+        config.enable_live_reload()
+        app = QApplication.instance()
+        if app is not None:
+            app.aboutToQuit.connect(config.flush)
+
+    def _on_config_changed(self, key):
+        """Sincroniza el panel cuando config.ini cambia (desde el panel o editado a mano)."""
+        if key == "general.opacity":
+            if self.opacity_slider.value() != config.get("general.opacity"):
+                self.opacity_slider.setValue(config.get("general.opacity"))
+        elif key in ("alarm.sound", "alarm.custom_sound"):
+            self._populate_sound_combo()
+
+    def _populate_sound_combo(self):
+        """Rellena el selector de sonido con textos traducidos y la opción actual seleccionada."""
+        choices = list(SOUND_CHOICES)
+        if config.get("alarm.custom_sound") or config.get("alarm.sound") == "custom":
+            choices.append("custom")
+        self.sound_combo.blockSignals(True)
+        self.sound_combo.clear()
+        for value in choices:
+            self.sound_combo.addItem(i18n.t(f"sound_{value}"), value)
+        idx = self.sound_combo.findData(config.get("alarm.sound"))
+        self.sound_combo.setCurrentIndex(max(0, idx))
+        self.sound_combo.blockSignals(False)
+
+    def on_sound_selected(self, index):
+        value = self.sound_combo.itemData(index)
+        if value:
+            config.set("alarm.sound", value)
+            self.preview_sound()
+
+    def preview_sound(self):
+        self.timer_widget.alarm_player.preview()
+
+    def open_config_file(self):
+        """Abre config.ini con el editor predeterminado del sistema (opciones avanzadas)."""
+        config.flush()
+        if not os.path.exists(config.path):
+            config.save()
+        QDesktopServices.openUrl(QUrl.fromLocalFile(config.path))
+
+    def closeEvent(self, event):
+        config.flush()
+        super().closeEvent(event)
 
 
     def _ensure_always_on_top(self):
@@ -579,6 +659,10 @@ class FloatingClockTimerWindow(QWidget):
 
         self.lbl_op.setText(i18n.t("opacity_lbl"))
         self.lbl_lang_setting.setText(i18n.t("lang_label"))
+        self.lbl_sound_setting.setText(i18n.t("sound_label"))
+        self.btn_sound_preview.setToolTip(i18n.t("sound_preview"))
+        self.btn_open_config.setToolTip(f"{i18n.t('open_config')}\n{config.path}")
+        self._populate_sound_combo()
         self.size_grip.setToolTip(i18n.t("resize_tooltip"))
         self.title_bar.setToolTip(f"Opacidad: {self.opacity_slider.value()}% • {i18n.t('title_tooltip')}")
 
@@ -588,6 +672,7 @@ class FloatingClockTimerWindow(QWidget):
         self.setWindowOpacity(opacity)
         self.lbl_opacity_value.setText(f"{value}%")
         self.title_bar.setToolTip(f"Opacidad: {value}% • {i18n.t('title_tooltip')}")
+        config.set("general.opacity", value)
 
 
     # --- Filtro de eventos para restaurar el cursor de flecha inmediatamente ---

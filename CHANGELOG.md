@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.4.0] - 2026-10-04
+
+### Added and Enhanced
+- **Centralized Configuration File**: Added a single, human-readable INI configuration file (`~/.config/clock-timer/config.ini`) with live reload (`QFileSystemWatcher`), atomic writes, self-documenting comments, and validation.
+- **Multiple Alarm Sound Themes**: Synthesized pure Python procedural audio alerts without binary assets:
+  - *Chime* (Crystal harmonic ding-dong chime)
+  - *Bell* (Deep resonant acoustic bell)
+  - *Digital* (Retro multi-beep alarm tone)
+  - *Soft* (Gentle ascending marimba arpeggio)
+  - *System* (Classic fallback system beep)
+  - *Silent* (Flash-only visual alarm without sound)
+  - *Custom* (Support for custom user-provided `.wav` audio files)
+- **Sound Selector & Live Audio Preview**: Added a sound selection dropdown to the Settings panel with an instant preview button (`▶`) and a direct shortcut button (`…`) to open `config.ini` in the system text editor for advanced options (volume, custom alarm duration).
+- **Persistent Window Opacity**: Opacity level is now saved and automatically restored across app restarts.
+- **Flatpak Audio Sandboxing**: Added `--socket=pulseaudio` permission to Flatpak manifest for seamless sound output under PipeWire and PulseAudio.
+
+---
+
 ## [1.3.1] - 2026-10-04
 
 ### Bug Fixes

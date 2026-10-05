@@ -55,6 +55,18 @@
   </screenshots>
 
   <releases>
+    <release version="1.4.0" date="2026-10-04">
+      <description>
+        <p>Configurable Alarm Sounds &amp; Centralized Configuration (Phase 1):</p>
+        <ul>
+          <li>Centralized, human-readable configuration file (~/.config/clock-timer/config.ini) with live auto-reload and atomic writes</li>
+          <li>Multiple synthesized alarm sounds (Chime, Bell, Digital, Soft), system beep fallback, and custom .wav file support</li>
+          <li>New sound selector in Settings panel with instant audio preview and quick config.ini access button</li>
+          <li>Persistent window opacity across application restarts</li>
+          <li>Full PipeWire and PulseAudio support under Flatpak sandboxing</li>
+        </ul>
+      </description>
+    </release>
     <release version="1.3.1" date="2026-10-04">
       <description>
         <p>Timer Duration Reset &amp; Preset Fix:</p>

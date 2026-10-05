@@ -62,17 +62,22 @@
   - Transición fluida con animaciones de morphing geométrico y desvanecimiento de controles inspiradas en macOS y Ubuntu.
   - Preserva la posición exacta donde colocaste la ventana sin saltar al centro al restaurarla.
   - Atajo rápido: Tecla `M` o `F`, o botón en la cabecera.
-- **Desktop Notifications**:
+- **Desktop Notifications & Alarm Sounds**:
   - En Linux: Alarma de escritorio con nombre de aplicación (`Clock & Timer`), icono oficial y auto-cierre a los 5 segundos.
   - En Windows: Notificaciones nativas integradas con el Action Center.
-  - Alerta combinada sonora (beep del sistema) y parpadeo visual.
+  - Varios temas de sonido sintetizados en Python puro: *Campanilla (Chime)*, *Campana (Bell)*, *Digital*, *Suave (Soft)*, *Beep del sistema*, *Silencio* o archivo `.wav` personalizado.
+  - Botón de preescucha (`▶`) en el panel de ajustes y parpadeo visual de alerta.
+- **Centralized Configuration (`~/.config/clock-timer/config.ini`)**:
+  - Archivo INI estándar, legible y comentado para usuarios de Linux y dotfiles.
+  - Recarga en vivo automática al editar el archivo con cualquier editor de texto.
+  - Acceso directo mediante el botón `…` en el panel de ajustes.
 - **System Tray Integration**:
   - Icono residente en la bandeja del sistema para mostrar u ocultar la ventana, alternar entre modos o salir limpiamente.
 - **Interactive Opacity Control**:
-  - Barra deslizante de opacidad del 30% al 100% con saltos rápidos (`50%`, `75%`, `100%`).
+  - Barra deslizante de opacidad del 30% al 100% con saltos rápidos (`50%`, `75%`, `100%`) y persistencia automática.
   - Rueda del ratón: Gira la rueda del mouse en cualquier parte de la ventana para ajustar la transparencia al vuelo.
 - **Bilingual Support (Español / English)**:
-  - Selector instantáneo en el panel de ajustes con persistencia de preferencias (`QSettings`).
+  - Selector instantáneo en el panel de ajustes con persistencia en `config.ini`.
 
 ---
 

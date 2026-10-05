@@ -266,6 +266,38 @@ QPushButton.LangButton:checked {
     font-weight: 700;
 }
 
+/* Selector de sonido de alarma */
+QComboBox#SoundCombo {
+    background-color: #242436;
+    color: #d0d0e2;
+    border: 1px solid #333348;
+    border-radius: 5px;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 6px;
+    min-height: 16px;
+}
+
+QComboBox#SoundCombo:hover {
+    border-color: #00d2ff88;
+    color: #ffffff;
+}
+
+QComboBox#SoundCombo::drop-down {
+    border: none;
+    width: 14px;
+}
+
+QComboBox#SoundCombo QAbstractItemView {
+    background-color: #1a1a26;
+    color: #e0e0ee;
+    border: 1px solid #2d2d3f;
+    selection-background-color: #00d2ff;
+    selection-color: #0c1017;
+    outline: 0;
+    padding: 2px;
+}
+
 /* Botones circulares para Mini-HUD */
 QPushButton.MiniAction {
     background-color: #00d2ff;

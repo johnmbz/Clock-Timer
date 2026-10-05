@@ -7,6 +7,8 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtCore import QTimer, Qt
 from .i18n import i18n
+from .config import config
+from .sounds import AlarmPlayer
 from .draggable_widgets import DualActionLabel
 
 class TimeSetupDialog(QDialog):
@@ -230,11 +232,19 @@ class TimerWidget(QWidget):
         self.remaining_seconds = 0
         self.is_running = False
         self.flash_state = False
+        self.alarm_player = AlarmPlayer(self)
 
         self.init_ui()
         self.init_timers()
         self.update_display()
         i18n.subscribe(self.retranslate_ui)
+        # Precargar el sonido tras mostrar la ventana para no retrasar el arranque
+        QTimer.singleShot(0, self.alarm_player.prepare)
+        config.changed.connect(self._on_config_changed)
+
+    def _on_config_changed(self, key):
+        if key in ("alarm.sound", "alarm.custom_sound"):
+            self.alarm_player.prepare()
 
 
     def init_ui(self):
@@ -509,8 +519,8 @@ class TimerWidget(QWidget):
         self.alarm_count = 0
         self.alarm_timer.start()
 
-        # Sonido nativo del sistema
-        QApplication.beep()
+        # Sonido configurable (config.ini → [alarm] sound / volume / duration)
+        self.alarm_player.play_alarm()
 
         # Notificación de escritorio delegada a la ventana principal (multiplataforma con auto-cierre)
         top_window = self.window()
@@ -537,18 +547,22 @@ class TimerWidget(QWidget):
             alert_style = "color: #ff3366; background-color: #331122; border-radius: 8px;"
             self.time_label.setStyleSheet(alert_style)
             self.mini_time_label.setStyleSheet(alert_style)
-            QApplication.beep()
+            self.alarm_player.on_flash()
         else:
             self.time_label.setStyleSheet("color: #ffffff; background-color: transparent;")
             self.mini_time_label.setStyleSheet("color: #ffffff; background-color: transparent;")
 
-        # Detener la alarma automáticamente tras 12 parpadeos (~5 segundos)
-        if self.alarm_count >= 12:
-            self.stop_alarm()
+        # Detener el parpadeo automáticamente al cumplirse la duración configurada.
+        # El sonido no se corta: termina su última repetición de forma natural.
+        max_flashes = max(2, round(config.get("alarm.duration") * 1000 / self.alarm_timer.interval()))
+        if self.alarm_count >= max_flashes:
+            self.stop_alarm(silence=False)
 
-    def stop_alarm(self):
+    def stop_alarm(self, silence=True):
         if self.alarm_timer.isActive():
             self.alarm_timer.stop()
+            if silence:
+                self.alarm_player.stop()
             self.time_label.setStyleSheet("color: #ffffff; background-color: transparent;")
             self.mini_time_label.setStyleSheet("color: #ffffff; background-color: transparent;")
             self.status_label.setText(i18n.t("timer_hint_ready"))

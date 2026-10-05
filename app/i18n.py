@@ -1,8 +1,8 @@
 """
 Módulo de Internacionalización (i18n) para soporte de Español e Inglés.
-Guarda la preferencia del usuario persistentemente con QSettings.
+Guarda la preferencia del usuario en config.ini (ver config.py).
 """
-from PyQt6.QtCore import QSettings
+from .config import config
 
 TRANSLATIONS = {
     "es": {
@@ -43,7 +43,17 @@ TRANSLATIONS = {
         "dialog_cancel": "Cancelar",
         "lang_label": "🌐 Idioma:",
         "mini_hud_shrink": "Modo Mini-HUD (Compactar)",
-        "mini_hud_expand": "Expandir a vista completa"
+        "mini_hud_expand": "Expandir a vista completa",
+        "sound_label": "🔔 Sonido:",
+        "sound_chime": "Campanilla",
+        "sound_bell": "Campana",
+        "sound_digital": "Digital",
+        "sound_soft": "Suave",
+        "sound_system": "Beep del sistema",
+        "sound_none": "Silencio",
+        "sound_custom": "Personalizado (.wav)",
+        "sound_preview": "Probar sonido",
+        "open_config": "Abrir config.ini (opciones avanzadas)"
     },
     "en": {
         "tab_clock": "Clock",
@@ -83,7 +93,17 @@ TRANSLATIONS = {
         "dialog_cancel": "Cancel",
         "lang_label": "🌐 Lang:",
         "mini_hud_shrink": "Mini-HUD Mode (Compact)",
-        "mini_hud_expand": "Expand to full view"
+        "mini_hud_expand": "Expand to full view",
+        "sound_label": "🔔 Sound:",
+        "sound_chime": "Chime",
+        "sound_bell": "Bell",
+        "sound_digital": "Digital",
+        "sound_soft": "Soft",
+        "sound_system": "System beep",
+        "sound_none": "Silent",
+        "sound_custom": "Custom (.wav)",
+        "sound_preview": "Preview sound",
+        "open_config": "Open config.ini (advanced options)"
     }
 
 }
@@ -98,26 +118,34 @@ class I18nManager:
         return cls._instance
 
     def _init(self):
-        self.settings = QSettings("RelojFlotante", "Settings")
-        # Idioma por defecto: español ('es')
-        self.current_lang = self.settings.value("language", "es")
-        if self.current_lang not in ("es", "en"):
-            self.current_lang = "es"
+        # Idioma por defecto: español ('es'), validado por config.py
+        self.current_lang = config.get("general.language")
         self._listeners = []
+        # Si el usuario edita config.ini a mano, aplicar el idioma en vivo
+        config.changed.connect(self._on_config_changed)
+
+    def _on_config_changed(self, key):
+        if key == "general.language":
+            self._apply(config.get("general.language"))
 
     def get_lang(self):
         return self.current_lang
 
     def set_lang(self, lang):
-        if lang in ("es", "en") and lang != self.current_lang:
-            self.current_lang = lang
-            self.settings.setValue("language", lang)
-            # Notificar a los widgets suscritos para que se actualicen en vivo
-            for listener in self._listeners:
-                try:
-                    listener()
-                except Exception:
-                    pass
+        if lang in ("es", "en"):
+            config.set("general.language", lang)
+            self._apply(lang)
+
+    def _apply(self, lang):
+        if lang == self.current_lang:
+            return
+        self.current_lang = lang
+        # Notificar a los widgets suscritos para que se actualicen en vivo
+        for listener in self._listeners:
+            try:
+                listener()
+            except Exception:
+                pass
 
     def t(self, key):
         """Retorna la traducción para la clave solicitada en el idioma actual."""
