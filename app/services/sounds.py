@@ -11,10 +11,10 @@ import os
 import struct
 import wave
 
-from PyQt6.QtCore import QObject, QStandardPaths, QUrl
+from PyQt6.QtCore import QObject, QStandardPaths, QTimer, QUrl
 from PyQt6.QtWidgets import QApplication
 
-from .config import config
+from ..core.config import config
 
 try:
     from PyQt6.QtMultimedia import QSoundEffect
@@ -158,6 +158,13 @@ class AlarmPlayer(QObject):
         super().__init__(parent)
         self._effect = QSoundEffect(self) if QSoundEffect is not None else None
         self._source_path = None
+        # Precargar el sonido tras mostrar la ventana para no retrasar el arranque
+        QTimer.singleShot(0, self.prepare)
+        config.changed.connect(self._on_config_changed)
+
+    def _on_config_changed(self, key):
+        if key in ("alarm.sound", "alarm.custom_sound"):
+            self.prepare()
 
     def _resolve(self):
         """Devuelve (modo, ruta). Modo: 'file', 'system' o 'none'."""

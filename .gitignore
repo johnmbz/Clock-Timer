@@ -41,3 +41,9 @@ _flatpak_build/
 # OS artifacts
 .DS_Store
 Thumbs.db
+
+# Configuración y reglas locales de IA (no subir a GitHub)
+AGENTS.md
+GEMINI.md
+.agents/
+.agent/

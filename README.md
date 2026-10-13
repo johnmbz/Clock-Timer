@@ -160,13 +160,29 @@ Clock-Timer/
 │   └── workflows/
 │       └── release.yml                 # Automated Linux & Windows CI/CD release workflow
 ├── app/
-│   ├── __init__.py                     # Package initialization
-│   ├── clock_widget.py                 # Responsive clock display & 12h/24h toggle
-│   ├── draggable_widgets.py            # GNOME-style dual click/drag gesture labels
-│   ├── i18n.py                         # Internationalization engine (EN / ES) & settings
-│   ├── styles.py                       # Modern dark-mode QSS stylesheets & minimalist icons
-│   ├── timer_widget.py                 # Countdown timer, presets, alarms & stepper dialog
-│   └── window.py                       # Frameless floating window, resizing, HUD & system tray
+│   ├── __init__.py                     # Package initialization & public exports
+│   ├── window.py                       # Backward-compatibility alias
+│   ├── core/                           # UI-independent business logic & state
+│   │   ├── config.py                   # Centralized INI config & live file watcher
+│   │   ├── i18n.py                     # Internationalization engine (EN / ES) & settings
+│   │   └── timer_model.py              # Pure countdown timer state machine & signals
+│   ├── services/                       # Operating system service integrations
+│   │   ├── notifications.py            # Desktop notification service (notify-send / tray)
+│   │   ├── sounds.py                   # Synthesized alarm sounds & WAV audio player
+│   │   └── tray.py                     # System tray icon & dynamic context menu
+│   └── ui/                             # Qt user interface components
+│       ├── frameless.py                # Frameless window drag & edge-resize mixin
+│       ├── mini_hud.py                 # Fluid animated Mini-HUD transition controller
+│       ├── settings_panel.py           # Collapsible opacity, language & sound settings
+│       ├── styles.py                   # Centralized color palette & modern QSS styles
+│       ├── title_bar.py                # Draggable tab header & window action buttons
+│       ├── window.py                   # Main floating window orchestrator
+│       └── widgets/                    # Modular view components
+│           ├── clock_widget.py         # Responsive clock display & 12h/24h toggle
+│           ├── draggable.py            # GNOME-style dual click/drag gesture widgets
+│           ├── page.py                 # Extensible base class for window tab pages
+│           ├── time_setup_dialog.py    # Stepper modal dialog for custom time entry
+│           └── timer_widget.py         # Countdown view, quick presets & alarm visuals
 ├── assets/
 │   ├── branding/                       # Design concepts & exploration artwork
 │   ├── icons/                          # Application icon (512x512 circular PNG)

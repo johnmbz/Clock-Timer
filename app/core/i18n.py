@@ -12,7 +12,8 @@ TRANSLATIONS = {
         "pin_off": "Modo normal (no fijado)",
         "opacity_btn": "Ajustar transparencia",
         "opacity_lbl": "Opacidad:",
-        "settings_btn": "Ajustes de idioma",
+        "settings_btn": "Ajustes (opacidad, idioma y sonido)",
+        "opacity_tooltip": "Opacidad: {value}%",
         "minimize": "Minimizar",
         "close": "Cerrar",
         "title_tooltip": "Arrastra para mover • Rueda del mouse para ajustar opacidad",
@@ -53,7 +54,13 @@ TRANSLATIONS = {
         "sound_none": "Silencio",
         "sound_custom": "Personalizado (.wav)",
         "sound_preview": "Probar sonido",
-        "open_config": "Abrir config.ini (opciones avanzadas)"
+        "open_config": "Abrir config.ini (opciones avanzadas)",
+        "mini_toggle_tooltip": "Iniciar / Pausar",
+        "mini_time_tooltip": "Clic para pausar / reanudar",
+        "tray_toggle": "Mostrar / Ocultar",
+        "tray_clock": "Modo Reloj",
+        "tray_timer": "Modo Temporizador",
+        "tray_quit": "✕ Salir"
     },
     "en": {
         "tab_clock": "Clock",
@@ -62,7 +69,8 @@ TRANSLATIONS = {
         "pin_off": "Normal mode (unpinned)",
         "opacity_btn": "Adjust transparency",
         "opacity_lbl": "Opacity:",
-        "settings_btn": "Settings (Opacity & Language)",
+        "settings_btn": "Settings (opacity, language & sound)",
+        "opacity_tooltip": "Opacity: {value}%",
         "minimize": "Minimize",
         "close": "Close",
         "title_tooltip": "Drag to move • Mouse wheel to adjust opacity",
@@ -103,7 +111,13 @@ TRANSLATIONS = {
         "sound_none": "Silent",
         "sound_custom": "Custom (.wav)",
         "sound_preview": "Preview sound",
-        "open_config": "Open config.ini (advanced options)"
+        "open_config": "Open config.ini (advanced options)",
+        "mini_toggle_tooltip": "Start / Pause",
+        "mini_time_tooltip": "Click to pause / resume",
+        "tray_toggle": "Show / Hide",
+        "tray_clock": "Clock mode",
+        "tray_timer": "Timer mode",
+        "tray_quit": "✕ Quit"
     }
 
 }
@@ -147,10 +161,14 @@ class I18nManager:
             except Exception:
                 pass
 
-    def t(self, key):
-        """Retorna la traducción para la clave solicitada en el idioma actual."""
+    def t(self, key, **kwargs):
+        """Retorna la traducción para la clave solicitada en el idioma actual.
+
+        Los argumentos con nombre rellenan los marcadores, ej. t("opacity_tooltip", value=80).
+        """
         lang_dict = TRANSLATIONS.get(self.current_lang, TRANSLATIONS["es"])
-        return lang_dict.get(key, key)
+        text = lang_dict.get(key, key)
+        return text.format(**kwargs) if kwargs else text
 
     def subscribe(self, callback):
         """Permite a los componentes suscribirse al cambio de idioma."""

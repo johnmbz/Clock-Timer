@@ -1,15 +1,21 @@
 from datetime import datetime
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QGraphicsOpacityEffect
+from PyQt6.QtWidgets import QVBoxLayout, QLabel, QGraphicsOpacityEffect
 from PyQt6.QtCore import QTimer, Qt
-from .i18n import i18n
-from .draggable_widgets import DualActionLabel
+from ...core.i18n import i18n
+from .draggable import DualActionLabel
+from .page import PageWidget
 
-class ClockWidget(QWidget):
+class ClockWidget(PageWidget):
     """
     Widget de reloj que muestra la hora y fecha actual.
     Soporta formato de 12 y 24 horas y escala su tipografía según el tamaño del widget.
     Soporta cambio dinámico de idioma (Español / Inglés).
     """
+    PAGE_ID = "clock"
+    ICON = "🕒"
+    TITLE_KEY = "tab_clock"
+    TRAY_KEY = "tray_clock"
+
     def __init__(self, parent=None):
         super().__init__(parent)
         self.is_24h = True
@@ -92,13 +98,10 @@ class ClockWidget(QWidget):
 
     def set_secondary_opacity(self, opacity: float):
         """Ajusta la opacidad de los elementos secundarios (fecha y formato) durante transiciones."""
-        if hasattr(self, "date_opacity_eff"):
-            self.date_opacity_eff.setOpacity(opacity)
-        if hasattr(self, "format_opacity_eff"):
-            self.format_opacity_eff.setOpacity(opacity)
+        self.date_opacity_eff.setOpacity(opacity)
+        self.format_opacity_eff.setOpacity(opacity)
 
     def set_mini_mode(self, enabled: bool):
-        self.is_mini_mode = enabled
         self.date_label.setVisible(not enabled)
         self.format_indicator.setVisible(not enabled)
         if enabled:
@@ -106,23 +109,14 @@ class ClockWidget(QWidget):
         else:
             self.layout().setContentsMargins(10, 10, 10, 10)
         self.update_time()
-        self.resizeEvent(None)
+        super().set_mini_mode(enabled)
 
-    def resizeEvent(self, event):
+    def update_fonts(self):
         """Ajusta proporcionalmente el tamaño de fuente según el tamaño de la ventana."""
-        if event is not None:
-            super().resizeEvent(event)
-
-        win = self.window()
-        if getattr(win, "is_animating_hud", False):
-            return
-
-        w = self.width()
-        h = self.height()
-        if getattr(self, "is_mini_mode", False):
+        if self.is_mini_mode:
             font_size = 24
         else:
-            base_size = min(w, h)
+            base_size = min(self.width(), self.height())
             font_size = max(20, min(30, int(base_size / 7.2)))
 
         font = self.time_label.font()
@@ -130,17 +124,8 @@ class ClockWidget(QWidget):
         font.setBold(True)
         self.time_label.setFont(font)
 
-        if not getattr(self, "is_mini_mode", False):
+        if not self.is_mini_mode:
             date_font_size = max(10, int(font_size / 2.6))
             d_font = self.date_label.font()
             d_font.setPointSize(date_font_size)
             self.date_label.setFont(d_font)
-
-    def mousePressEvent(self, event):
-        if event.button() == Qt.MouseButton.LeftButton:
-            win = self.window()
-            if hasattr(win, "start_window_drag"):
-                win.start_window_drag()
-        super().mousePressEvent(event)
-
-

@@ -1,6 +1,8 @@
 from PyQt6.QtWidgets import QPushButton, QLabel
 from PyQt6.QtCore import Qt
 
+from ..frameless import request_window_drag
+
 class DraggableTabButton(QPushButton):
     """
     Botón de pestaña con efecto dual al estilo GNOME / Libadwaita:
@@ -24,9 +26,7 @@ class DraggableTabButton(QPushButton):
             if distance > 6:
                 self.is_dragging = True
                 self.setDown(False)
-                win = self.window()
-                if hasattr(win, "start_window_drag"):
-                    win.start_window_drag()
+                request_window_drag(self)
                 self.drag_start_pos = None
                 return
         super().mouseMoveEvent(event)
@@ -63,9 +63,7 @@ class DualActionLabel(QLabel):
             distance = (event.globalPosition().toPoint() - self.drag_start_pos).manhattanLength()
             if distance > 6:
                 self.is_dragging = True
-                win = self.window()
-                if hasattr(win, "start_window_drag"):
-                    win.start_window_drag()
+                request_window_drag(self)
                 self.drag_start_pos = None
                 return
         super().mouseMoveEvent(event)
